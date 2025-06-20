@@ -1,5 +1,3 @@
-# import warnings
-# warnings.filterwarnings("ignore")
 
 import imageio.v2 as iio
 import scipy.signal
@@ -12,6 +10,8 @@ from multiprocessing import Process, Manager
 import tifffile
 import time
 import glob
+from numba import jit, cuda,float64
+
 
 def plotline(coords, title):
     plt.plot(coords)
@@ -364,9 +364,10 @@ def finder(files):
     s.kill()
     return values
 
+
     
 if __name__ =='__main__':
-    files = glob.glob('Metingen2025-06-10/*/*.ome.tif')
+    files = glob.glob('Metingen2025-05-27/*/*.ome.tif')
     allfiles = glob.glob('*') 
     for i,file in enumerate(files):
         if len(glob.glob(f'{file[:-8]}.txt')) == 0:
