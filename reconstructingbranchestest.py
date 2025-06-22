@@ -116,7 +116,7 @@ for i,branches in enumerate(brancheses):
     sidewayss.append(sideway)
 
 reference = np.nanmean(np.array(sidewayss[:10]).flatten())
-
+referencestd = np.nanstd(np.array(sidewayss[:10]).flatten())
 data = np.array(sidewayss[10:]).transpose()
 averages = np.array([np.nanmean(i) for i in data])
 averages = ss.savgol_filter(averages, 20, 3)
@@ -144,7 +144,9 @@ plt.plot(xvals, averages - std, 'b:')
 
 plt.xlabel(r"$\Delta t\:(\mu s)$")
 plt.ylabel("Ratio radius travelled/vertical distance travelled.")
-plt.title("7.67kV 67 mbar 200 ns")
+# plt.title("7.67kV 67 mbar 200 ns")
 ax = plt.gca()
+ax.axhline(y=np.mean(reference)+referencestd, color='blue', ls=':')
+ax.axhline(y=np.mean(reference)-referencestd, color='blue', ls=':')
 ax.axhline(y=np.mean(reference), color='blue')
 plt.show()

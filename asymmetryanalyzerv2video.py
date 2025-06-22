@@ -34,6 +34,7 @@ for branches in brancheses:
         else:
             maxr = 0
             bestitem = (298, 13)
+            first = True
             for branch in finalbranches:
                 for point in branch:
                 # if distancesquared((298, 13), branch[-1]) > maxr:
@@ -42,9 +43,12 @@ for branches in brancheses:
                     sidewayss[p].append(point)
                     # colors.append(p)
                     if point[0] > 298:
-                        right += 1
+                        right += 1 + first
                     elif point[0] < 298:
-                        left += 1
+                        left += 1 + first
+                    if first:
+                        sidewayss[p].append(point)
+                first = False
 
 
 first = True
@@ -55,7 +59,7 @@ for sideway in sidewayss:
     maxx = max(list(zip(*sideway))[0])-min(list(zip(*sideway))[0])
     maxy = max(list(zip(*sideway))[1])-min(list(zip(*sideway))[1])
     heatmap, xedges, yedges = np.histogram2d(*zip(*sideway), bins=(maxx,maxy))
-    heatmap = np.log(heatmap.T)
+    heatmap = np.ma.log(heatmap.T)
     if first:
         first = False
         maxxx = np.max(heatmap)
