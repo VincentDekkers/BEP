@@ -8,7 +8,7 @@ import scipy.signal as ss
 def distancesquared(point1, point2):
     return (point1[0]-point2[0])**2+(point1[1]-point2[1])**2
 
-names = [i for i in glob.glob("Metingen2025-06-10/f*/*.txt") if "RecSettings" not in i]
+names = [i for i in glob.glob("Metingen2025-06-23/*/*.txt") if "RecSettings" not in i]
 # names = [i for i in glob.glob(
     # "Metingen2025-05-27/grondm*/*.txt")+glob.glob("Metingen2025-05-27/text*/*.txt") if "RecSettings" not in i]
 brancheses = []
@@ -42,9 +42,9 @@ referencestd = reference.std()
 reference = reference.mean()
 data = []
 xvals = []
-for i in range(1,5):
+for i in range(1,3):
     data += list(np.array(sidewayss[10*i:10*(i+1)]).transpose())
-    xvals += list(np.array(list(range(10**(i), 10**(i+1)+1, 10**(i-1))))/10)
+    xvals += list(np.array(list(range(10**(i+1), 10**(i+2)+1, 10**(i)))))
 averages = np.array([np.nanmean(i) for i in data])
 averages = ss.savgol_filter(averages, 15, 2)
 std = np.array([np.nanstd(i) for i in data])
@@ -56,7 +56,7 @@ plt.xlabel(r"$\Delta t\:(\mu s)$")
 plt.ylabel("Relative streamer width (-)")
 # plt.title(r"Relative uncertainty of relative width of streamers")
 plt.xscale('log')
-plt.xlim([1,10000])
+plt.xlim([100,10000])
 ax = plt.gca()
 ax.axhline(y=np.mean(reference)+referencestd, color='blue', ls=':')
 ax.axhline(y=np.mean(reference)-referencestd, color='blue', ls=':')
