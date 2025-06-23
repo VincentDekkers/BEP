@@ -3,7 +3,7 @@ from matplotlib import pyplot as plt
 import glob
 import seaborn as sns
 import numpy as np
-file = glob.glob("metignen13-05-2025/testvncent67mbarVO2025-05-13_15-36-36/testvncent67mbarVO2025-05-13_15-36-36.ome.tif")
+file = glob.glob("Metingen2025-06-23/twentymbar3-76vnitrogen2025-06-23_11-28-03/twentymbar3-76vnitrogen2025-06-23_11-28-03.ome.tif")
 
 print(file)
 reader = tifffile.imread(file)

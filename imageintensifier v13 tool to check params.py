@@ -142,10 +142,10 @@ def findfwhmonbranches(image,
     num,
     values,
     rigidness = 0.995,
-    displacementfactor = 0.1,
-    maxdistmainbrach = 5,
+    displacementfactor = 0.2,
+    maxdistmainbrach = 20,
     minimumbranchlength = 20,
-    maxdistsubbranch = 5,
+    maxdistsubbranch = 20,
     maxdistancetostartbranch = 1000,
     printnumberofbranchesfound = True,
     correlationcoeff = 0.02,
@@ -170,7 +170,7 @@ def findfwhmonbranches(image,
     '''
     rawerimage = image.copy()
     rawerimage = np.minimum(rawerimage,200)
-    image = cv2.GaussianBlur(image,(9,9),0)
+    image = cv2.GaussianBlur(image,(41,41),0)
     rawimage = image.copy()
     image = np.array([findstreamers(row) for row in image])
     image2 = np.array([findstreamers(row) for row in rawimage.transpose()]).transpose()
@@ -223,7 +223,7 @@ def findfwhmonbranches(image,
                     if distancesquared(item,bestpoint) < 1 and len(spinalcoords) == 0:
                         spinalcoords.append(bestpoint)
                     elif len(spinalcoords) > 0 and item[0] != 0:
-                        if np.sqrt(distancesquared(item, spinalcoords[-1])) - distanceparralel(angle, spinalcoords[-1], item) < maxdistsubbranch and abs(calculateangle(spinalcoords[-1],item) - angle) < maxbend and np.sqrt(distancesquared(item,spinalcoords[-1]))<20:
+                        if np.sqrt(distancesquared(item, spinalcoords[-1])) - distanceparralel(angle, spinalcoords[-1], item) < maxdistsubbranch and abs(calculateangle(spinalcoords[-1],item) - angle) < maxbend and np.sqrt(distancesquared(item,spinalcoords[-1]))<30:
                             angle = rigidness*angle + (1-rigidness)*calculateangle(spinalcoords[-1],item)
                             spinalcoords.append([(displacementfactor*item[0]+spinalcoords[-1][0]+distanceparralel(angle,spinalcoords[-1],item)*np.sin(angle))/(displacementfactor+1),(displacementfactor*item[1]+spinalcoords[-1][1]+distanceparralel(angle,spinalcoords[-1],item)*np.cos(angle))/(displacementfactor+1)])
                             itemlist.append(tuple(item))
@@ -293,13 +293,14 @@ def findfwhmonbranches(image,
     
     try:
         wherearethebranches = np.array([0]*int(finalbranches[0][-2][1]+1))
-        sns.heatmap(image, cmap='nipy_spectral')
-        plt.title('Success')
-        plt.show()
+    #     sns.heatmap(image, cmap='nipy_spectral')
+    #     plt.title('Success')
+    #     plt.show()
     except:
-        sns.heatmap(image, cmap='nipy_spectral')
-        plt.title('Failed')
-        plt.show()
+        wherearethebranches = np.array([0])
+    #     sns.heatmap(image, cmap='nipy_spectral')
+    #     plt.title('Failed')
+    #     plt.show()
     for branch in finalbranches:
         rs = [np.sqrt(distancesquared(el, (298,13))) for el in branch[:-1]]
         while len(wherearethebranches)<rs[-1]:
@@ -372,7 +373,7 @@ def findfwhmonbranches(image,
 
 if __name__ == '__main__':
     # reader = tifffile.imread("metignen13-05-2025/testvncent67mbarVO2025-05-13_13-33-33/testvncent67mbarVO2025-05-13_13-33-33.ome.tif")
-    reader = tifffile.imread("000Xe_50mbar_8kV_650ns2025-03-27_14-02-11.ome.tif")
+    reader = tifffile.imread("Metingen2025-06-23/twentymbar3-76vnitrogen2025-06-23_11-28-03/twentymbar3-76vnitrogen2025-06-23_11-28-03.ome.tif")
     print('\033[1A\x1b[2K', end='\r')
     for i in range(len(reader)):
         print(len(reader)-1-i)
