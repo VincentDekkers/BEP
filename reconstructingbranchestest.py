@@ -70,7 +70,9 @@ def getvalue(x,y, img):
 # names = [i for i in glob.glob(
 #     "Metingen2025-05-27/grondm*/*.txt")+glob.glob("Metingen2025-05-27/text*/*.txt") if "RecSettings" not in i]
 names = [i for i in glob.glob(
-    "Metingen2025-05-27/grond7-67*/*.txt") if "RecSettings" not in i]
+    "Metingen2025-06-10/te*/*.txt") if ("RecSettings" not in i) and ("1000") not in i]
+print(len(names), sep='\n')
+exit()
 brancheses = []
 for name in names:
     print(name)
