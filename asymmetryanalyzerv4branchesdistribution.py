@@ -10,13 +10,13 @@ import seaborn as sns
 # names = [i for i in glob.glob(
 #     "Metingen2025-05-27/grondm*/*.txt")+glob.glob("Metingen2025-05-27/text*/*.txt") if "RecSettings" not in i]
 names = [i for i in glob.glob(
-    "Metingen2025-06-23/*/*.txt") if "RecSettings" not in i][:10]
+    "Metingen2025-06-23/*/*.txt") if "RecSettings" not in i][20:]
 brancheses = []
 # names = [x for i,x in enumerate(names[:-10]) if i // 10 % 2 != 0]
 
 
-def distancesquared(point1, point2):
-    return (point1[0]-point2[0])**2+(point1[1]-point2[1])**2
+def calculateangle(startpoint,endpoint):return np.arctan2(endpoint[0]-startpoint[0],endpoint[1]-startpoint[1])
+def distancesquared(point1, point2):return (point1[0]-point2[0])**2+(point1[1]-point2[1])**2
 
 
 for name in names:
@@ -25,33 +25,40 @@ for name in names:
         brancheses.append([eval(i[:-1]) if i != 'error\n' else []
                           for i in file.readlines()])
 
-xvals = [[] for _ in range(20)]
+xvals = []
 
 for branches in brancheses:
     sidewaysleft = []
     sidewaysright = []
     for p,finalbranches in enumerate(branches):
         maxr = 0
-        besty = 0
+        angle = 0
         # firstbranch = True
         for branch in finalbranches:
-            # try:
-            #     # for _ in range(branch[0][1],branch[-1][1]):
-            #         xvals.append(branch[-1][0])
-            # except:
-            #     pass
+            try:
+                # for _ in range(branch[0][1],branch[-1][1]):
+                    xvals.append(branch[-1][0])
+            except:
+                pass
             # for point in branch:
-            if distancesquared((298, 13), branch[-1]) > maxr:
-                maxr = distancesquared((298, 13), branch[-1])
-                besty = branch[-1][0]
-        xvals[len(finalbranches)].append(int(np.abs(298-besty)))
+        #     if distancesquared((298, 13), branch[-1]) > maxr:
+        #         maxr = distancesquared((298, 13), branch[-1])
+        #         # angle = np.sin(np.abs(calculateangle((298,13),branch[-1])))
+        #         angle = branch[-1][0]
+        # xvals.append(angle)
+        # xvals[len(finalbranches)].append(int(np.abs(298-besty)))
         
         # for branch in finalbranches:
         #     if branch[-1][1] > besty - 100 and branch[-1][1] - branch[0][1] > 50:
         # xvals.append(besty)
-[print(j, len(i), np.mean(i)*11/473) for j,i in enumerate(xvals)]
+# [print(j, len(i), np.mean(i), np.std(i)) for j,i in enumerate(xvals)]
 # sns.kdeplot([j for sub in xvals[26:34] for j in sub],bw_adjust=0.5)
-# sns.kdeplot(np.array(xvals)*11/473-6.93, bw_adjust=0.5)
+sns.kdeplot(np.array(xvals)*11/473-6.93, bw_adjust=0.5)
+
+xs = np.linspace(-3,3,300)
+ys = 1/(np.pi*np.sqrt(10.5-xs**2))
+plt.plot(xs,ys,':',color='red')
+
 # plt.show()
 # sidewayssleft = np.sqrt(np.nanmean(np.array(sidewayssleft).transpose(),1))*11/473
 # sidewayssright = np.sqrt(np.nanmean(np.array(sidewayssright).transpose(),1))*11/473
@@ -67,10 +74,10 @@ for branches in brancheses:
 # plt.xlim([0,1000])
 # plt.ylim([0,1])
 # plt.xlabel(r"$\Delta t \; (\mu s)$")
-# plt.xlabel("sideward movement (cm)")
+plt.xlabel("sideward movement (cm)")
 # plt.ylabel("Fraction of longest branches going left (cm)")
-# plt.gca().axhline(y=0.5,color='black')
-# plt.show()
+plt.gca().axvline(x=0,color='black')
+plt.show()
 
 
             # colors.append(p)

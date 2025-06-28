@@ -116,6 +116,7 @@
 from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw 
+from matplotlib import pyplot as plt
 
 img = Image.open("Capture4.JPG")
 draw = ImageDraw.Draw(img)
@@ -124,4 +125,5 @@ font = ImageFont.truetype("Qdbettercomicsans-jEEeG.ttf",size=50)
 # draw.text((x, y),"Sample Text",(r,g,b))
 draw.text((300, 500),"HALLO JIP",(255,255,255), font=font)
 draw.text((301, 499),"HALLO JIP",(0,0,0), font=font)
-img.save('sample-out.jpg')
+plt.imshow(draw)
+plt.show()
