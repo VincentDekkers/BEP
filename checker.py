@@ -10,7 +10,7 @@ name = "Metingen2025-06-10/fullrange67mbar6-00kV500ns2025-06-10_15-34-42/fullran
 reader = tifffile.imread(f'{name}.ome.tif')
 with open(f'{name}.txt', 'r') as file: data = [eval(i[:-1]) for i in file.readlines()]
 # reader = tifffile.imread('metignen13-05-2025/testvncent67mbarVO2025-05-13_15-34-35/testvncent67mbarVO2025-05-13_15-34-35.ome.tif')
-for i,image in enumerate(reader):
+for i,image in enumerate(reader[9:10],9):
     # imgtoplot = np.minimum(50,image)
     # sns.heatmap(imgtoplot,cmap='nipy_spectral')
     # figManager = plt.get_current_fig_manager()
