@@ -15,13 +15,13 @@ referencess = []
 xvalss = []
 averagess = []
 colors = ['red','green','blue','purple']
-startvals = [33,0,45]
+startvals = [22,0,11,40]
 
 # names = [i for i in glob.glob(
 #     "Metingen2025-05-27/grondm*/*.txt")+glob.glob("Metingen2025-05-27/text*/*.txt") if "RecSettings" not in i]
 for q in range(3):
     names = [i for i in glob.glob(
-        "Metingen2025-06-03/*/*.txt") if ("RecSettings" not in i) and ('1000' not in i)][startvals[q]:startvals[q]+11]
+        "Metingen2025-06-03/*/*.txt") if "RecSettings" not in i][startvals[q]:startvals[q]+11]
     brancheses = []
     for name in names:
         print(name)
@@ -66,7 +66,7 @@ for q in range(3):
     plt.plot(xvals,averages,color=colors[q])
     referencess.append(reference)
     # xvals = list(np.array(list(range(10,101,1)))/10)+list(range(10,101,1))+list(range(100, 1001, 10))+list(range(1000,10001,100))
-plt.legend(["5.13 kV", "5.73 kV","6.70 kV"])
+plt.legend(["300 ns", "500 ns","700 ns"])
 # plt.plot(xvals, averages, color='black')
 # plt.plot(xvals, averages + std, color='black',ls=':')
 # plt.plot(xvals, averages - std, color='black',ls=':')
@@ -96,8 +96,8 @@ plt.ylabel("Relative sideward propagation (-)")
 # for q,reference in enumerate(referencess):
 #     plt.gca().axhline(y=reference, color=colors[q])
 #     plt.plot()
-plt.xlim([30,1000])
-plt.xscale('log')
+plt.xlim([100,1000])
+# plt.xscale('log')
 # plt.xlabel(r"$\Delta t\:(\mu s)$")
 # plt.ylabel("Realtive sideward propagation (-)")
 
@@ -108,6 +108,6 @@ for i in range(3):
     # ax.axhline(y=np.mean(referencess)-referencestd, color='black', ls=':')
     ax.axhline(y=np.mean(referencess[i]), color=colors[i])
 ax.xaxis.set_major_formatter(ScalarFormatter())
-# ax.xaxis.set_minor_formatter(ScalarFormatter())
+ax.xaxis.set_minor_formatter(ScalarFormatter())
 # ax.xaxis.set_minor_locator(MultipleLocator(200))
 plt.show()

@@ -1,1 +1,0 @@
-import numpy as n;[print(i,n.mean(n.sin(n.random.rand(10**7)**(1/i)*n.pi/2))) for i in range(1,8)]

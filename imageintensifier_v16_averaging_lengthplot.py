@@ -25,7 +25,9 @@ def showheatmap(image):
     plt.show()
     
 def logger(lijst, starttime):
-    # print('Started')
+    '''
+    Logs the progress of individual processes
+    '''
     length = len(lijst)
     prevstringstoprint = 0
     while True:
@@ -196,13 +198,12 @@ def findfwhmonbranches(image,
     printnumberofbranchesfound: bool and self explanatory
     '''
     try:
-        rawerimage = image.copy()
-        image = cv2.GaussianBlur(image,(9,9),0)
+        image = cv2.GaussianBlur(image,(9,9),0) #filters with gaussian blur
         rawimage = image.copy()
-        image = np.array([findstreamers(row) for row in image])
-        image2 = np.array([findstreamers(row) for row in rawimage.transpose()]).transpose()
+        image = np.array([findstreamers(row) for row in image]) #horizonal check
+        image2 = np.array([findstreamers(row) for row in rawimage.transpose()]).transpose() # vertical check
         image = np.maximum(image,image2)
-        coordsoftops = np.array([[j,i] for i,row in enumerate(image) for j, el in enumerate(row) if el > 3])
+        coordsoftops = np.array([[j,i] for i,row in enumerate(image) for j, el in enumerate(row) if el > 3]) # finds coords of tops
         disttocenter = [(298-el[0])**2+(13-el[1])**2 for el in coordsoftops]
         coordsoftops = [x for _,x in sorted(zip(disttocenter, coordsoftops), key=lambda pair: pair[0])]
         # generating a list of coordinates of the tops op the streamer
@@ -212,14 +213,14 @@ def findfwhmonbranches(image,
         spinalcoords2 = [coordsoftops[0].copy()]
         itemlist = []
         progresslist[num] = [0,0]
-        for item in coordsoftops:
+        for item in coordsoftops: # finds main branch
             if np.sqrt(distancesquared(item, spinalcoords2[-1])) - distanceparralel(angle, spinalcoords2[-1], item) < maxdistmainbrach and abs(calculateangle(spinalcoords2[-1],item) - angle) < maxbend and np.sqrt(distancesquared(item,spinalcoords2[-1]))<20:
                 angle = rigidness*angle + (1-rigidness)*calculateangle(spinalcoords2[-1],item)
                 spinalcoords2.append([(displacementfactor*item[0]+spinalcoords2[-1][0]+distanceparralel(angle,spinalcoords2[-1],item)*np.sin(angle))/(displacementfactor+1),(displacementfactor*item[1]+spinalcoords2[-1][1]+distanceparralel(angle,spinalcoords2[-1],item)*np.cos(angle))/(displacementfactor+1)])
                 itemlist.append(tuple(item))
                 item[0] = 0
         added = []
-        for item in itemlist:
+        for item in itemlist: # checks intermediate points
             for top in coordsoftops:
                 if tuple(top) not in added and distancesquared(top,item) < 10:
                     added.append(tuple(top))
@@ -228,8 +229,7 @@ def findfwhmonbranches(image,
         itemlist = [x for _,x in sorted(zip([(298-el[0])**2+(13-el[1])**2 for el in itemlist], itemlist), key=lambda pair: pair[0])]
         finalbranches.append(itemlist)
         # finding the sub-branches iteratively
-        for h,spine in enumerate(finalbranches):
-        # for h,spine in []:
+        for h,spine in enumerate(finalbranches): # searches more branches
             branches = []
             pointsreached = []
             for i,branchpoint in enumerate(spine):
@@ -255,18 +255,12 @@ def findfwhmonbranches(image,
                                 angle = rigidness*angle + (1-rigidness)*calculateangle(spinalcoords[-1],item)
                                 spinalcoords.append([(displacementfactor*item[0]+spinalcoords[-1][0]+distanceparralel(angle,spinalcoords[-1],item)*np.sin(angle))/(displacementfactor+1),(displacementfactor*item[1]+spinalcoords[-1][1]+distanceparralel(angle,spinalcoords[-1],item)*np.cos(angle))/(displacementfactor+1)])
                                 itemlist.append(tuple(item))
-                            # if (item[0]-spinalcoords[-1][0]-angle*(item[1]-spinalcoords[-1][1]))**2 < maxdistsubbranch and abs(item[0]-spinalcoords[-1][0]) < averagewidthbranch:
-                            #     angle = rigidness*angle + (1-rigidness)*(item[0]-spinalcoords[-1][0])
-                            #     spinalcoords.append([(displacementfactor*(spinalcoords[-1][0]+angle*(item[1]-spinalcoords[-1][1]))+item[0])/(1+displacementfactor),item[1]])
-                            #     itemlist.append(tuple(item))
                     if len(spinalcoords) > minimumbranchlength:
                         if checkbranch(spinalcoords,image):
                             branches.append(itemlist)
                             pointsreached.append(itemlist)
             if len(branches) == 0:
                 progresslist[num] = [len(finalbranches),h+1]
-                # if printnumberofbranchesfound:
-                #     print('\033[1A'*(num)+'\r'+f"{num}: The number of branches found is {len(finalbranches)}, checking {h+1}"+'\n'*num, end='\r')
                 continue
             correlations = []
             branchindexes = [[0]]
@@ -318,18 +312,7 @@ def findfwhmonbranches(image,
                             item[0] = 0
             progresslist[num] = [len(finalbranches),h+1]
         finalbranches = [[tuple(el) for el in branch] for branch in finalbranches]
-        
-        # For cool plot of fits
-        maxy = 0
-        maxr = 0
-        for i,branch in enumerate(finalbranches):
-            ys = [el[1] for el in branch[:-1]]
-            rs = [np.sqrt(distancesquared(el, (298,13))) for el in branch[:-1]]
-            if max(ys) > maxy:
-                maxy = max(ys)
-            if max(rs) > maxr:
-                maxr = max(rs)
-            
+ 
         values.append([num,finalbranches])
     except:
         values.append([num,'error'])
@@ -338,43 +321,37 @@ def findfwhmonbranches(image,
 
 
 def finder(files):
-    # reader = tifffile.imread("metignen13-05-2025/testvncent67mbarVO2025-05-13_13-33-33/testvncent67mbarVO2025-05-13_13-33-33.ome.tif")
-    reader = tifffile.imread(files)
+    reader = tifffile.imread(files) # reads file
     print('\033[1A\x1b[2K', end='\r')
-    # for i in range(len(reader)):
-    #     print(len(reader)-1-i)
-    # print('\033[1A', end='\r')
     processes = []
     manager = Manager()
     values = manager.list([])
     progresslist = manager.list([0]*len(reader))
-    s = Process(target=logger, args=(progresslist,time.time(),))
+    s = Process(target=logger, args=(progresslist,time.time(),)) # initiate logger
     s.start()
-    for i,image in enumerate(reader):
-        if np.max(np.max(image)) > 10:
-            p = Process(target=findfwhmonbranches, args=(image,i,values,progresslist,))
+    for i,image in enumerate(reader): # for each image
+        if np.max(np.max(image)) > 10: # checks for black image
+            p = Process(target=findfwhmonbranches, args=(image,i,values,progresslist,)) # initiates processes
             p.start()
             processes.append(p)
         else:
             values.append([i,'error'])
             progresslist[i] = [1,1]
     for p in processes:
-        p.join()
+        p.join() # waits until termination of all processes
     time.sleep(0.5)
     s.kill()
     return values
 
     
 if __name__ =='__main__':
-    files = glob.glob('Metingen2025-06-10/*/*.ome.tif')
-    allfiles = glob.glob('*') 
+    files = glob.glob('Metingen2025-06-23/*/*.ome.tif') #Searches all files
     for i,file in enumerate(files):
-        if len(glob.glob(f'{file[:-8]}.txt')) == 0:
+        if len(glob.glob(f'{file[:-8]}.txt')) == 0: # check if braches have been found alr
             print(f'Imageset {i+1} out of {len(files)}',end='\n\n')
-            values = list(finder(file))
+            values = list(finder(file)) # the script
             values.sort()
             with open(f'{file[:-8]}.txt','w') as file:
                 for el in [j[1] for j in values]:
                     file.write(str(el)+'\n')
             print('\033[1A\x1b[2K'*4,end='\r')
-    # findfwhmonbranches(image)
