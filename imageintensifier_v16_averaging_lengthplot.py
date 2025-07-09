@@ -300,6 +300,7 @@ def findfwhmonbranches(image,
                         if tuple(point) not in added and distancesquared(el, point) < 10:
                             added.append(tuple(point))
                 branches[mainbranch] += added
+                branches[mainbranch] = list(set(branches[mainbranch]))
                 branches[mainbranch] = [x for _,x in sorted(zip([(298-el[0])**2+(13-el[1])**2 for el in branches[mainbranch]], branches[mainbranch]), key=lambda pair: pair[0])]
                     ####
                 mainbranches.append(mainbranch)
