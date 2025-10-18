@@ -4,7 +4,7 @@ import glob
 import tifffile
 import seaborn as sns
 
-file = glob.glob("Metingen2025-06-10/*/*.ome.tif")[53]
+file = glob.glob("m/*/*.ome.tif")[0]
 reader = tifffile.imread(file)
 for img in reader:
     sns.heatmap(np.minimum(img,300), cmap='nipy_spectral',cbar=False)

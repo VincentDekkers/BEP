@@ -228,6 +228,7 @@ def findfwhmonbranches(image,
         itemlist += added
         itemlist = [x for _,x in sorted(zip([(298-el[0])**2+(13-el[1])**2 for el in itemlist], itemlist), key=lambda pair: pair[0])]
         finalbranches.append(itemlist)
+        checkedbranches = []
         # finding the sub-branches iteratively
         for h,spine in enumerate(finalbranches): # searches more branches
             branches = []
@@ -257,9 +258,11 @@ def findfwhmonbranches(image,
                                 itemlist.append(tuple(item))
                     if len(spinalcoords) > minimumbranchlength:
                         if checkbranch(spinalcoords,image):
+                            itemlist.insert(0,tuple(branchpoint))
                             branches.append(itemlist)
                             pointsreached.append(itemlist)
             if len(branches) == 0:
+                checkedbranches.append([tuple(element) for element in spine])
                 progresslist[num] = [len(finalbranches),h+1]
                 continue
             correlations = []
@@ -278,8 +281,10 @@ def findfwhmonbranches(image,
                 if not inset:
                     branchindexes.append([i])
             mainbranches = []
+            indexesofbranching = [0]
             for branch in branchindexes:
                 maximumscore = 0
+                dist = 10000000
                 mainbranch = branch[0]
                 for el in branch:
                     som = 0
@@ -293,18 +298,36 @@ def findfwhmonbranches(image,
                     if som > maximumscore:
                         maximumscore = som
                         mainbranch = el
+                        p1 = branches[el][0:2]
+                        dist = (p1[0][0]-p1[1][0])**2+(p1[0][1]-p1[1][1])**2
+                    elif som == maximumscore:
+                        p1 = branches[el][0:2]
+                        dist2 = (p1[0][0]-p1[1][0])**2+(p1[0][1]-p1[1][1])**2
+                        if dist > dist2:
+                            mainbranch = el
+                            dist = dist2
                     ####
                 added = []
-                for el in branches[mainbranch]:
+                firstinbranch = branches[mainbranch][0]
+                indexesofbranching.append(spine.index(branches[mainbranch][0]))
+                for el in branches[mainbranch][1:]:
                     for point in coordsoftops:
                         if tuple(point) not in added and distancesquared(el, point) < 10:
                             added.append(tuple(point))
                 branches[mainbranch] += added
                 branches[mainbranch] = list(set(branches[mainbranch]))
-                branches[mainbranch] = [x for _,x in sorted(zip([(298-el[0])**2+(13-el[1])**2 for el in branches[mainbranch]], branches[mainbranch]), key=lambda pair: pair[0])]
+                branches[mainbranch] = [firstinbranch] + [x for _,x in sorted(zip([(298-el[0])**2+(13-el[1])**2 for el in branches[mainbranch][1:]], branches[mainbranch][1:]), key=lambda pair: pair[0])]
                     ####
                 mainbranches.append(mainbranch)
-            
+                
+            indexesofbranching.sort()
+            for ii,index in enumerate(indexesofbranching):
+                try:
+                    splitbranch = spine[index:indexesofbranching[ii+1]+1]
+                except:
+                    splitbranch = spine[index:]
+                checkedbranches.append([tuple(el) for el in splitbranch])
+                    
             for el in mainbranches:
                 if len(branches) != 0:
                     finalbranches.append(branches[el])
@@ -312,7 +335,7 @@ def findfwhmonbranches(image,
                         if tuple(item) in pointsreached[el]:
                             item[0] = 0
             progresslist[num] = [len(finalbranches),h+1]
-        finalbranches = [[tuple(el) for el in branch] for branch in finalbranches]
+        finalbranches = [[tuple(el) for el in branch] for branch in checkedbranches]
  
         values.append([num,finalbranches])
     except:
@@ -346,7 +369,7 @@ def finder(files):
 
     
 if __name__ =='__main__':
-    files = glob.glob('Metingen2025-06-23/*/*.ome.tif') #Searches all files
+    files = glob.glob('m/*/*.ome.tif') #Searches all files
     for i,file in enumerate(files):
         if len(glob.glob(f'{file[:-8]}.txt')) == 0: # check if braches have been found alr
             print(f'Imageset {i+1} out of {len(files)}',end='\n\n')

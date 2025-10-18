@@ -6,7 +6,7 @@ import cv2
 import tifffile
 import seaborn as sns
 
-name = "Metingen2025-06-10/fullrange67mbar6-00kV500ns2025-06-10_15-34-42/fullrange67mbar6-00kV500ns2025-06-10_15-34-42"
+name = "m/grondmetingen5-73x500ns2025-05-27_14-25-10/grondmetingen5-73x500ns2025-05-27_14-25-10"
 reader = tifffile.imread(f'{name}.ome.tif')
 with open(f'{name}.txt', 'r') as file: data = [eval(i[:-1]) for i in file.readlines()]
 # reader = tifffile.imread('metignen13-05-2025/testvncent67mbarVO2025-05-13_15-34-35/testvncent67mbarVO2025-05-13_15-34-35.ome.tif')
@@ -68,6 +68,7 @@ for i,image in enumerate(reader):
     axs[1].invert_yaxis()
     axs[0].axis('off')
     axs[1].axis('off')
+    plt.plot(318,79,'ro')
     # axs[0].ylabel("Distance (pixels)")
     # axs[0].xlabel("Distance (pixels)")
     # axs[1].ylabel("Distance (pixels)")
