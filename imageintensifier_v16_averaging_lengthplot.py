@@ -12,6 +12,7 @@ import tifffile
 import time
 import glob
 import matplotlib
+import json
 startingpoint = [298,13] # Deafault, overwritten if clickstart == True
 clickstart = True
 
@@ -349,7 +350,7 @@ def findfwhmonbranches(image,
 
 
 def finder(files):
-    reader = tifffile.imread(files) # reads file
+    reader = tifffile.imread(files)[:3] # reads file
     print('\033[1A\x1b[2K', end='\r')
     processes = []
     manager = Manager()
@@ -398,7 +399,9 @@ if __name__ =='__main__':
             print(f'Imageset {i+1} out of {len(files)}',end='\n\n')
             values = list(finder(file)) # the script
             values.sort()
-            with open(f'{file[:-8]}.txt','w') as file:
+            with open(f'{file[:-8]}.txt','w') as txtfile:
                 for el in [j[1] for j in values]:
-                    file.write(str(el)+'\n')
+                    txtfile.write(str(el)+'\n')
+            with open(f'{file[:-8]}.json','w') as jsonfile:
+                json.dump({i:{j:{k: [int(coord) for coord in top] for k, top in enumerate(branchno)} for j,branchno in enumerate(picno)} for i,picno in values},jsonfile)
             print('\033[1A\x1b[2K'*4,end='\r')

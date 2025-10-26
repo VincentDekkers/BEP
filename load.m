@@ -1,0 +1,1 @@
+dat = jsondecode(fileread('m/grondmetingen5-73x500ns2025-05-27_14-25-10/grondmetingen5-73x500ns2025-05-27_14-25-10.json'));
