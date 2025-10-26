@@ -1,6 +1,5 @@
 # import warnings
 # warnings.filterwarnings("ignore")
-
 import imageio.v2 as iio
 import scipy.signal
 import seaborn as sns
@@ -12,6 +11,9 @@ from multiprocessing import Process, Manager
 import tifffile
 import time
 import glob
+import matplotlib
+startingpoint = [298,13] # Deafault, overwritten if clickstart == True
+clickstart = True
 
 def plotline(coords, title):
     plt.plot(coords)
@@ -198,13 +200,15 @@ def findfwhmonbranches(image,
     printnumberofbranchesfound: bool and self explanatory
     '''
     try:
+        startingpointx = startingpoint[0]
+        startingpointy = startingpoint[1]
         image = cv2.GaussianBlur(image,(9,9),0) #filters with gaussian blur
         rawimage = image.copy()
         image = np.array([findstreamers(row) for row in image]) #horizonal check
         image2 = np.array([findstreamers(row) for row in rawimage.transpose()]).transpose() # vertical check
         image = np.maximum(image,image2)
         coordsoftops = np.array([[j,i] for i,row in enumerate(image) for j, el in enumerate(row) if el > 3]) # finds coords of tops
-        disttocenter = [(298-el[0])**2+(13-el[1])**2 for el in coordsoftops]
+        disttocenter = [(startingpointx-el[0])**2+(startingpointy-el[1])**2 for el in coordsoftops]
         coordsoftops = [x for _,x in sorted(zip(disttocenter, coordsoftops), key=lambda pair: pair[0])]
         # generating a list of coordinates of the tops op the streamer
         finalbranches = []
@@ -226,7 +230,7 @@ def findfwhmonbranches(image,
                     added.append(tuple(top))
                     top[0] = 0
         itemlist += added
-        itemlist = [x for _,x in sorted(zip([(298-el[0])**2+(13-el[1])**2 for el in itemlist], itemlist), key=lambda pair: pair[0])]
+        itemlist = [x for _,x in sorted(zip([(startingpointx-el[0])**2+(startingpointy-el[1])**2 for el in itemlist], itemlist), key=lambda pair: pair[0])]
         finalbranches.append(itemlist)
         checkedbranches = []
         # finding the sub-branches iteratively
@@ -316,7 +320,7 @@ def findfwhmonbranches(image,
                             added.append(tuple(point))
                 branches[mainbranch] += added
                 branches[mainbranch] = list(set(branches[mainbranch]))
-                branches[mainbranch] = [firstinbranch] + [x for _,x in sorted(zip([(298-el[0])**2+(13-el[1])**2 for el in branches[mainbranch][1:]], branches[mainbranch][1:]), key=lambda pair: pair[0])]
+                branches[mainbranch] = [firstinbranch] + [x for _,x in sorted(zip([(startingpointx-el[0])**2+(startingpointy-el[1])**2 for el in branches[mainbranch][1:]], branches[mainbranch][1:]), key=lambda pair: pair[0])]
                     ####
                 mainbranches.append(mainbranch)
                 
@@ -367,9 +371,28 @@ def finder(files):
     s.kill()
     return values
 
+def click_event(event, x, y, flags, params):
+    if event == cv2.EVENT_LBUTTONDOWN:
+        startingpoint[0] = x
+        startingpoint[1] = y
+        cv2.destroyAllWindows()
     
 if __name__ =='__main__':
     files = glob.glob('m/*/*.ome.tif') #Searches all files
+    
+    if clickstart: # If one wishes to choose the top by hand
+        reader = tifffile.imread(files[0])
+        for image in reader:
+            if np.max(image) > 10: # Sometimes the first picture is just black
+                cmap = matplotlib.colormaps['nipy_spectral']
+                image = reader[0]
+                image = cmap(image/np.max(image))
+                cv2.imshow('streamer', image)
+                cv2.setMouseCallback('streamer', click_event)
+                cv2.waitKey(0)
+                print(f"The chosen top is {startingpoint}")
+                break
+    
     for i,file in enumerate(files):
         if len(glob.glob(f'{file[:-8]}.txt')) == 0: # check if braches have been found alr
             print(f'Imageset {i+1} out of {len(files)}',end='\n\n')
