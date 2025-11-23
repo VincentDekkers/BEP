@@ -26,7 +26,7 @@ def showheatmap(image):
     ax.invert_yaxis()
     plt.show()
     
-def logger(lijst, starttime, speed):
+def logger(lijst, starttime, speed, checkmorebranches):
     '''
     Logs the progress of individual processes
     '''
@@ -40,9 +40,13 @@ def logger(lijst, starttime, speed):
         for i,item in enumerate(lijst):
             if type(item) == int:
                 continue
-            if item[0] == 0 or item[0] != item[1]:
+            if item[0] == 0 or item[0] > item[1]:
                 numberofstringstoprint += 1
                 stringtoprint += f'{i+1}: Number of branches found: {item[0]}, checking {item[1]}'+'\n'
+                started += 1
+            elif item[0] == item[1] and checkmorebranches:
+                numberofstringstoprint += 1
+                stringtoprint += f'{i+1}: Number of branches found: {item[0]}, looking for streamers with breaks'+'\n'
                 started += 1
             else:
                 finished += 1
@@ -106,7 +110,7 @@ def findstreamers(row, hor=True):
     time = 0
     for i,item in enumerate(row):
         if not instreamer:
-            if item > 5:
+            if item > 15:
                 if time == 0:
                     startstreamer = i
                 time += 1
@@ -115,7 +119,7 @@ def findstreamers(row, hor=True):
             elif time != 0:
                 time -= 1  
         else:
-            if item > 5 and time < 3:
+            if item > 15 and time < 3:
                 time += 1
             else:
                 if time == 3:
@@ -210,8 +214,9 @@ def findfwhmonbranches(image,
         image = cv2.GaussianBlur(image,(blurrsize,blurrsize),0) #filters with gaussian blur
         rawimage = image.copy()
         image = np.array([findstreamers(row) for row in image]) #horizonal check
-        image2 = np.array([findstreamers(row) for row in rawimage.transpose()]).transpose() # vertical check
-        image = np.maximum(image,image2)
+        if not settings['HorizontalOnly']:
+            image2 = np.array([findstreamers(row) for row in rawimage.transpose()]).transpose() # vertical check
+            image = np.maximum(image,image2)
         coordsoftops = np.array([[j,i] for i,row in enumerate(image) for j, el in enumerate(row) if el > 3]) # finds coords of tops
         disttocenter = [(startingpointx-el[0])**2+(startingpointy-el[1])**2 for el in coordsoftops]
         coordsoftops = [x for _,x in sorted(zip(disttocenter, coordsoftops), key=lambda pair: pair[0])]
@@ -273,6 +278,37 @@ def findfwhmonbranches(image,
             if len(branches) == 0:
                 checkedbranches.append([tuple(element) for element in spine])
                 progresslist[num] = [len(finalbranches),h+1]
+                
+                if len(finalbranches) == h+1 and settings['SearchForContinuedStreamers']:
+                    for itemm in coordsoftops:
+                        if itemm[0] == 0:
+                            continue
+                        
+                        angle = calculateangle(startingpoint,itemm)
+                        possiblebranch = []
+                        spinalcoords3 = [itemm]
+                        for item in coordsoftops: # finds main branch
+                            if item[0] != 0:
+                                if np.sqrt(distancesquared(item, spinalcoords3[-1])) - distanceparralel(angle, spinalcoords3[-1], item) < maxdistmainbrach and abs(calculateangle(spinalcoords3[-1],item) - angle) < maxbend and np.sqrt(distancesquared(item,spinalcoords3[-1]))<20:
+                                    angle = rigidness*angle + (1-rigidness)*calculateangle(spinalcoords3[-1],item)
+                                    spinalcoords3.append([(displacementfactor*item[0]+spinalcoords3[-1][0]+distanceparralel(angle,spinalcoords3[-1],item)*np.sin(angle))/(displacementfactor+1),(displacementfactor*item[1]+spinalcoords3[-1][1]+distanceparralel(angle,spinalcoords3[-1],item)*np.cos(angle))/(displacementfactor+1)])
+                                    possiblebranch.append(tuple(item))
+                        added = []
+                        for item in possiblebranch: # checks intermediate points
+                            for top in coordsoftops:
+                                if tuple(top) not in added and distancesquared(top,item) < 10:
+                                    added.append(tuple(top))
+                        possiblebranch += added
+                        possiblebranch = [x for _,x in sorted(zip([(startingpointx-el[0])**2+(startingpointy-el[1])**2 for el in possiblebranch], possiblebranch), key=lambda pair: pair[0])]
+                        if len(possiblebranch) > minimumbranchlength:
+                            finalbranches.append(possiblebranch)
+                            for item in coordsoftops:
+                                if tuple(item) in possiblebranch:
+                                    item[0] = 0
+                            break
+                        itemm[0] = 0
+                    else:
+                        progresslist[num] = [len(finalbranches),h+2]
                 continue
             correlations = []
             branchindexes = [[0]]
@@ -360,7 +396,7 @@ def finder(files, settings):
     manager = Manager()
     values = manager.list([])
     progresslist = manager.list([0]*len(reader))
-    s = Process(target=logger, args=(progresslist,time.time(),settings['ProgressUpdateTime'],)) # initiate logger
+    s = Process(target=logger, args=(progresslist,time.time(),settings['ProgressUpdateTime'],settings['SearchForContinuedStreamers'])) # initiate logger
     s.start()
     for i,image in enumerate(reader): # for each image
         if np.max(np.max(image)) > 10: # checks for black image
@@ -406,7 +442,7 @@ if __name__ =='__main__':
 
     for i,file in enumerate(files):
         if len(glob.glob(f'{file[:-8]}.txt')) == 0: # check if braches have been found alr
-            print(f'Imageset {i+1} out of {len(files)}',end='\n\n')
+            print(f'Imageset {i+1} out of {len(files)}',end='\n')
             values = list(finder(file, settings)) # the script
             values.sort()
             with open(f'{file[:-8]}.txt','w') as txtfile:

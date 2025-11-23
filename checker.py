@@ -6,7 +6,7 @@ import cv2
 import tifffile
 import seaborn as sns
 
-name = "m/grondmetingen5-73x500ns2025-05-27_14-25-10/grondmetingen5-73x500ns2025-05-27_14-25-10"
+name = "m/doublepulse3_N2_50mbar_6kV_2025-07-10_11-41-48/doublepulse3_N2_50mbar_6kV_2025-07-10_11-41-48"
 reader = tifffile.imread(f'{name}.ome.tif')
 with open(f'{name}.txt', 'r') as file: data = [eval(i[:-1]) for i in file.readlines()]
 # reader = tifffile.imread('metignen13-05-2025/testvncent67mbarVO2025-05-13_15-34-35/testvncent67mbarVO2025-05-13_15-34-35.ome.tif')

@@ -1,7 +1,10 @@
+SearchForContinuedStreamers: True
+HorizontalOnly: True
+
 Path: '''m/*/*'''
 StartingPoint: [298,13]
-Clickstart: True
-BlurrSize: 9 
+Clickstart: False
+BlurrSize: 9
 
 Rigidness: 0.995
 DisplacementFactor: 0.1
