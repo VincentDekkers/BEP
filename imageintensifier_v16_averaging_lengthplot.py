@@ -13,8 +13,7 @@ import time
 import glob
 import matplotlib
 import json
-startingpoint = [298,13] # Deafault, overwritten if clickstart == True
-clickstart = True
+import yaml
 
 def plotline(coords, title):
     plt.plot(coords)
@@ -27,7 +26,7 @@ def showheatmap(image):
     ax.invert_yaxis()
     plt.show()
     
-def logger(lijst, starttime):
+def logger(lijst, starttime, speed):
     '''
     Logs the progress of individual processes
     '''
@@ -50,7 +49,7 @@ def logger(lijst, starttime):
         firstline = f'Finished {finished} out of {length} pictures' +'\n'
         secondline = f'Seconds busy with this set: {int(time.time()-starttime)}' + '\n'
         print('\033[1A\x1b[2K'*prevstringstoprint+firstline+secondline+stringtoprint)
-        time.sleep(0.3)
+        time.sleep(speed)
         
         prevstringstoprint = numberofstringstoprint + 3
         
@@ -173,15 +172,8 @@ def findfwhmonbranches(image,
     num,
     values,
     progresslist,
-    rigidness = 0.995,
-    displacementfactor = 0.1,
-    maxdistmainbrach = 5,
-    minimumbranchlength = 20,
-    maxdistsubbranch = 5,
-    maxdistancetostartbranch = 1000,
-    printnumberofbranchesfound = True,
-    correlationcoeff = 0.02,
-    maxbend = np.pi/1.5):
+    settings
+    ):
     '''
     Function to find the fwhm at each point on the main and sub-branches.
     params:
@@ -201,9 +193,21 @@ def findfwhmonbranches(image,
     printnumberofbranchesfound: bool and self explanatory
     '''
     try:
+        rigidness = float(settings['Rigidness'])
+        displacementfactor = settings['DisplacementFactor']
+        maxdistmainbrach = settings['MaxDistanceMainBranch']
+        minimumbranchlength = settings['MinimumBranchLengh']
+        maxdistsubbranch = settings['MaxDistanceSubBranch']
+        maxdistancetostartbranch = settings['MaxDistanceToStartBranch']
+        correlationcoeff = settings['CorrelationCoeff']
+        maxbend = settings['MaxBend']
+        startingpoint = settings['StartingPoint']
         startingpointx = startingpoint[0]
         startingpointy = startingpoint[1]
-        image = cv2.GaussianBlur(image,(9,9),0) #filters with gaussian blur
+        blurrsize = settings['BlurrSize']
+        maxdistmissedtop = settings['MaxDistmissedTop']
+        
+        image = cv2.GaussianBlur(image,(blurrsize,blurrsize),0) #filters with gaussian blur
         rawimage = image.copy()
         image = np.array([findstreamers(row) for row in image]) #horizonal check
         image2 = np.array([findstreamers(row) for row in rawimage.transpose()]).transpose() # vertical check
@@ -317,7 +321,7 @@ def findfwhmonbranches(image,
                 indexesofbranching.append(spine.index(branches[mainbranch][0]))
                 for el in branches[mainbranch][1:]:
                     for point in coordsoftops:
-                        if tuple(point) not in added and distancesquared(el, point) < 10:
+                        if tuple(point) not in added and distancesquared(el, point) < maxdistmissedtop:
                             added.append(tuple(point))
                 branches[mainbranch] += added
                 branches[mainbranch] = list(set(branches[mainbranch]))
@@ -349,18 +353,18 @@ def findfwhmonbranches(image,
     
 
 
-def finder(files):
+def finder(files, settings):
     reader = tifffile.imread(files)[:3] # reads file
     print('\033[1A\x1b[2K', end='\r')
     processes = []
     manager = Manager()
     values = manager.list([])
     progresslist = manager.list([0]*len(reader))
-    s = Process(target=logger, args=(progresslist,time.time(),)) # initiate logger
+    s = Process(target=logger, args=(progresslist,time.time(),settings['ProgressUpdateTime'],)) # initiate logger
     s.start()
     for i,image in enumerate(reader): # for each image
         if np.max(np.max(image)) > 10: # checks for black image
-            p = Process(target=findfwhmonbranches, args=(image,i,values,progresslist,)) # initiates processes
+            p = Process(target=findfwhmonbranches, args=(image,i,values,progresslist,settings,)) # initiates processes
             p.start()
             processes.append(p)
         else:
@@ -379,12 +383,18 @@ def click_event(event, x, y, flags, params):
         cv2.destroyAllWindows()
     
 if __name__ =='__main__':
-    files = glob.glob('m/*/*.ome.tif') #Searches all files
     
-    if clickstart: # If one wishes to choose the top by hand
+    with open("settings.yaml") as settings:settings = yaml.safe_load(settings)
+    for key in settings.keys():
+        if type(settings[key]) == str: settings[key] = eval(settings[key])
+        
+    files = glob.glob(f'{settings["Path"]}.ome.tif') #Searches all files
+    startingpoint = settings['StartingPoint']
+    
+    if settings['Clickstart']: # If one wishes to choose the top by hand
         reader = tifffile.imread(files[0])
         for image in reader:
-            if np.max(image) > 10: # Sometimes the first picture is just black
+            if np.max(image) > 10: # Sometimes the first picture is just black due to a camera error
                 cmap = matplotlib.colormaps['nipy_spectral']
                 image = reader[0]
                 image = cmap(image/np.max(image))
@@ -393,11 +403,11 @@ if __name__ =='__main__':
                 cv2.waitKey(0)
                 print(f"The chosen top is {startingpoint}")
                 break
-    
+
     for i,file in enumerate(files):
         if len(glob.glob(f'{file[:-8]}.txt')) == 0: # check if braches have been found alr
             print(f'Imageset {i+1} out of {len(files)}',end='\n\n')
-            values = list(finder(file)) # the script
+            values = list(finder(file, settings)) # the script
             values.sort()
             with open(f'{file[:-8]}.txt','w') as txtfile:
                 for el in [j[1] for j in values]:

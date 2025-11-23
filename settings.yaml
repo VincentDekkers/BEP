@@ -1,0 +1,19 @@
+Path: '''m/*/*'''
+StartingPoint: [298,13]
+Clickstart: True
+BlurrSize: 9 
+
+Rigidness: 0.995
+DisplacementFactor: 0.1
+
+MinimumBranchLengh: 20
+CorrelationCoeff: 0.02
+MaxBend: np.pi/1.5 
+
+MaxDistanceMainBranch: 5
+MaxDistanceSubBranch: 5
+
+MaxDistanceToStartBranch: 1000
+MaxDistmissedTop: 10
+
+ProgressUpdateTime: 0.3 # seconds
