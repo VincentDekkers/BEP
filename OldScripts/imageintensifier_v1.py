@@ -44,8 +44,7 @@ def findstreamers(row):
 
 if __name__ == '__main__':
     # img = iio.imread("vincenttest_2404_1000_20_100ns_100co2_024.tif")
-    img = iio.imread("vincenttest_2404_750_10_1000ns_200mbar_firstpulse5us_008.tif")
-
+    img = iio.imread("m/4quikEpics_251217_150mbarN2_1000ns_00000.tif")
     imgcopy = img.copy()[:100].flatten()
     mean = np.mean(imgcopy)
     std = np.std(imgcopy)

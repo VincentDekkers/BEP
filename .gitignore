@@ -7,3 +7,4 @@ test*.py
 test3.py
 m/*
 .vscode
+*.jpg

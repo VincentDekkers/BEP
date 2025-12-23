@@ -167,7 +167,7 @@ def findfwhmonbranches(
     std = np.std(imgcopy)
     
     # filtering the noise from the image
-    newimg = np.array([[(el-mean)/std if (el-mean)/std > 0 else 0 for el in row] for row in img])
+    newimg = np.array([[(el-mean)/std if el > mean else 0 for el in row] for row in img])
     if blurimg:
         newimg = cv2.GaussianBlur(newimg,(imagefilterblurwindow,imagefilterblurwindow),0)
     newerimg = np.array([[el if (newimg[i-1][j]+newimg[i-1][j-1]+newimg[i-1][j+1]+newimg[i][j-1]+newimg[i][j+1]+newimg[i+1][j]+newimg[i+1][j+1]+newimg[i+1][j-1])-max(newimg[i-1][j],newimg[i-1][j-1],newimg[i-1][j+1],newimg[i][j-1],newimg[i][j+1],newimg[i+1][j],newimg[i+1][j+1],newimg[i+1][j-1]) > minval else 0 for j,el in enumerate(row[1:-1])] for i,row in enumerate(newimg[1:-1])])
