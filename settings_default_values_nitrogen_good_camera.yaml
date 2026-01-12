@@ -32,4 +32,6 @@ MaxDistmissedTop: 10 #in pixels^2
 
 MaxDistTopsAlg2: 20 # Maximum distance between parent and daughter
 
+Steplength: 10 # Maximum number of tops to calculate average direction for FWHM calculation
+
 ProgressUpdateTime: 0.3 # seconds

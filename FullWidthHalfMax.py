@@ -1,17 +1,12 @@
 import imageio.v2 as iio
-import scipy.signal
 import seaborn as sns
 import matplotlib.pyplot as plt
 import numpy as np
 import cv2
-import scipy
 from multiprocessing import Process, Manager
 import tifffile
-import time
-import glob
-import matplotlib
-import json
 from numpy import nan
+import yaml
 
 def distancesquared(coord1, coord2): # Function to calculate the distance squared between two points
     return (coord2[0]-coord1[0])**2+(coord2[1]-coord1[1])**2
@@ -129,10 +124,15 @@ def findfwhm(image, step, twig, maxvalbackground):
 
 if __name__ == '__main__':
     name = 'm/grondmetingen5-73x500ns2025-05-27_14-25-10/grondmetingen5-73x500ns2025-05-27_14-25-10'
-    maxdist = 10
-    steplength = 10
-    blurring = 9
-    maxvalbackground = 20
+    
+    with open("settings.yaml") as settings:settings = yaml.safe_load(settings)
+    for key in settings.keys():
+        if type(settings[key]) == str: settings[key] = eval(settings[key])
+
+    maxdist = settings['MaxDistanceMainBranch']
+    steplength = settings['Steplength']
+    blurring = settings['BlurrSize']
+    maxvalbackground = settings['MaxvalNoise']
     reader = tifffile.imread(f'{name}.ome.tif')
     with open(f'{name}.txt', 'r') as file: branches = [eval(i[:-1]) for i in file.readlines()]
     fwhms = []

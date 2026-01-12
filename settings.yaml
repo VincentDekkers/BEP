@@ -1,11 +1,11 @@
 # All distances are in pixels unless stated otherwise. The rest is unitless unless stated otherwise.
 Camera: 1 # 1: .ome.tif, 2: tif
-Algorithm: 2 # 1 for the classical and 2 for the less accurate but faster alg.
+Algorithm: 1 # 1 for the classical and 2 for the less accurate but faster alg.
 
 SearchForContinuedStreamers: True 
 NumberOfDirections: 2 # 1 (horizontal), 2 or 4 (including diagonals). 4 is best when the streamers are relatively thin.
 
-Path: '''m/g*/*'''
+Path: '''m/g*/*''' # '*' for any caractercombination of any length. To fetch all matching the string.
 StartingPoint: [298,13] # Default coordinates of the startingpoint 
 Clickstart: True # Whether the start must be manually selected.
 
@@ -20,16 +20,18 @@ MinvalFilterCamera2: 7
 MaxvalNoise: 20 # After filtering, typically 15 for camera 1 and 2 for camera 2
 
 # Fitting params
-Rigidness: 0.995
-DisplacementFactor: 0.1
-MinimumBranchLengh: 20
-CorrelationCoeff: 0.02
-MaxBend: np.pi/1.5 
-MaxDistanceMainBranch: 5
-MaxDistanceSubBranch: 5
+Rigidness: 0.995            # How much an additional point can alter the general direction of the branch
+DisplacementFactor: 0.1     # The amount of displacement of the virtual general direction
+MinimumBranchLengh: 20      # Minimum number of tops for a branch
+CorrelationCoeff: 0.02      # Maximum correlation for independent branches
+MaxBend: np.pi/1.5          # Maximum angle between general direction and line between virtual point and possible next top in the branch
+MaxDistanceMainBranch: 5    # Maximum distance between adjacent tops of the main branch
+MaxDistanceSubBranch: 5     # Maximum distance between adjacent tops of a sub branch
 MaxDistanceToStartBranch: 1000 # in pixels^2
 MaxDistmissedTop: 10 #in pixels^2
 
-MaxDistTopsAlg2: 20
+MaxDistTopsAlg2: 20 # Maximum distance between parent and daughter
+
+Steplength: 10 # Maximum number of tops to calculate average direction for FWHM calculation
 
 ProgressUpdateTime: 0.3 # seconds

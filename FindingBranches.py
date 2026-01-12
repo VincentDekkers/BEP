@@ -757,7 +757,7 @@ def writercamera2(file, num, progresslist, settings,):
         for el in [j[1] for j in values]:
             txtfile.write(str(el)+'\n')
     with open(f'{file[:-4]}.json','w') as jsonfile:
-        json.dump({i:{j:{k: [int(coord) if coord != 'error' else coord for coord in top] for k, top in enumerate(branchno)} for j,branchno in enumerate(picno)} for i,picno in values},jsonfile)
+        json.dump({i:{j:{k: [int(coord) for coord in top] for k, top in enumerate(branchno)} if branchno != 'error' else branchno for j,branchno in enumerate(picno)} for i,picno in values},jsonfile)
     
 
 def findercamera2(files, settings):
@@ -837,8 +837,8 @@ if __name__ =='__main__':
                     for el in [j[1] for j in values]:
                         txtfile.write(str(el)+'\n')
                 with open(f'{file[:-8]}.json','w') as jsonfile:
-                    json.dump({i:{j:{k: [int(coord) if coord != 'error' else coord for coord in top] for k, top in enumerate(branchno)} for j,branchno in enumerate(picno)} for i,picno in values},jsonfile)
-                print('\033[1A\x1b[2K'*4,end='\r')
+                    json.dump({i:{j:{k: [int(coord) for coord in top] for k, top in enumerate(branchno)} if branchno != 'error' else branchno for j,branchno in enumerate(picno)} for i,picno in values},jsonfile)
+                print('\033[1A\x1b[2K'*3,end='\r')
 # For camera 2, there is only 1 image per file, thus this is faster to let the individual processes write to the disk.
     elif settings['Camera'] == 2:
         findercamera2(files,settings)
