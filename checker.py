@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import tifffile
 import seaborn as sns
+import numpy as np
 
 name = "m/grondmetingen5-73x500ns2025-05-27_14-25-10/grondmetingen5-73x500ns2025-05-27_14-25-10"
 reader = tifffile.imread(f'{name}.ome.tif')
